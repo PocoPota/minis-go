@@ -22,17 +22,25 @@ const (
 	Neq            // !=
 )
 
+// 二項式
 type BinExpr struct {
 	Op
 	Left, Right Expr
 }
+func (BinExpr) isExpr() {}
 
+// 数値
 type Number struct {
 	Value int
 }
-
-func (BinExpr) isExpr() {}
 func (Number) isExpr()  {}
+
+// シーケンス
+type Seq struct {
+	exprs []Expr
+}
+func (Seq) isExpr() {}
+
 
 func Eval(expr Expr) (int, error) {
 	switch e := expr.(type) {
@@ -50,6 +58,19 @@ func Eval(expr Expr) (int, error) {
 		default:
 			return 0, fmt.Errorf("unknown expression type: %T", e.Op)
 		}
+	case Seq:
+		if len(e.exprs) == 0 {
+			return 0, nil // 空のシーケンスは0を返す
+		}
+		var result int
+		for _, ex := range e.exprs{
+			v, err := Eval(ex)
+			if err != nil {
+				return 0, err
+			}
+			result = v // 最後の式の値を返す
+		}
+		return result, nil
 	default:
 		return 0, fmt.Errorf("unknown expression type: %T", expr)
 	}
@@ -167,5 +188,27 @@ func main() {
 		fmt.Println("Error:", err)
 	} else {
 		fmt.Println("Result:", result2)
-	}	
+	}
+
+	// シーケンスの例: (1 + 2; 3 * 4) を表す式を構築
+	expr3 := Seq{
+		exprs: []Expr{
+			BinExpr{
+				Op:   Add,
+				Left: Number{Value: 1},
+				Right: Number{Value: 2},
+			},
+			BinExpr{
+				Op:   Mul,
+				Left: Number{Value: 3},
+				Right: Number{Value: 4},
+			},
+		},
+	}
+	result3, err := Eval(expr3)
+	if err != nil {
+		fmt.Println("Error:", err)
+	} else {
+		fmt.Println("Result:", result3)
+	}
 }
