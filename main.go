@@ -2,54 +2,36 @@ package main
 
 import "fmt"
 
-// 式
 type Expr interface {
 	isExpr()
 }
 
-// 数値
+// Opの定義
+type Op int
+const (
+	Add Op = iota
+	Sub
+	Mul
+	Div
+)
+
+type BinExpr struct {
+	Op
+	Left, Right Expr
+}
+
 type Number struct {
 	Value int
 }
 
-// 加算
-type Add struct {
-	Left  Expr
-	Right Expr
-}
-
-// 減算
-type Sub struct {
-	Left  Expr
-	Right Expr
-}
-
-// 乗算
-type Mul struct {
-	Left  Expr
-	Right Expr
-}
-
-// 除算
-type Div struct {
-	Left  Expr
-	Right Expr
-}
-
-// isExprメソッドの追加
+func (BinExpr) isExpr() {}
 func (Number) isExpr() {}
-func (Add) isExpr()    {}
-func (Sub) isExpr()    {}
-func (Mul) isExpr()    {}
-func (Div) isExpr()    {}
 
-func Eval(expr Expr) (int, error){
+func Eval(expr Expr) (int, error) {
 	switch e := expr.(type) {
-	
 	case Number:
 		return e.Value, nil
-	
-	case Add:
+	case BinExpr:
 		l, err := Eval(e.Left)
 		if err != nil {
 			return 0, err
@@ -58,65 +40,41 @@ func Eval(expr Expr) (int, error){
 		if err != nil {
 			return 0, err
 		}
-		return l + r, nil
-			
-	case Sub:
-		l, err := Eval(e.Left)
-		if err != nil {
-			return 0, err
+		switch e.Op {
+		case Add:
+			return l + r, nil
+		case Sub:
+			return l - r, nil
+		case Mul:
+			return l * r, nil
+		case Div:
+			if r == 0 {
+				return 0, fmt.Errorf("division by zero")
+			}
+			return l / r, nil
+		default:
+			return 0, fmt.Errorf("unknown operator: %v", e.Op)
 		}
-		r, err := Eval(e.Right)
-		if err != nil {
-			return 0, err
-		}
-		return l - r, nil
-			
-	case Mul:
-		l, err := Eval(e.Left)
-		if err != nil {
-			return 0, err
-		}
-		r, err := Eval(e.Right)
-		if err != nil {
-			return 0, err
-		}
-		return l * r, nil
-			
-	case Div:
-		l, err := Eval(e.Left)
-		if err != nil {
-			return 0, err
-		}
-		r, err := Eval(e.Right)
-		if err != nil {
-			return 0, err
-		}
-		if r == 0 {
-			return 0, fmt.Errorf("division by zero")
-		}
-		return l / r, nil
-		
 	default:
-		return 0, fmt.Errorf("unknown expression")
+		return 0, fmt.Errorf("unknown expression type: %T", e)
 	}
 }
 
 func main() {
-	// (3 + 5) * (10 - 2) = 64
-	expr := Mul{
-		Left: Add{
-			Left: Number{Value: 3},
-			Right: Number{Value: 5},
-		},
-		Right: Sub{
-			Left: Number{Value: 10},
-			Right: Number{Value: 2},
+	// (1 + 2 * 3) を表す式を構築
+	expr := BinExpr{
+		Op: Add,
+		Left: Number{Value: 1},
+		Right: BinExpr{
+			Op: Mul,
+			Left: Number{Value: 2},
+			Right: Number{Value: 3},
 		},
 	}
 	result, err := Eval(expr)
-	if err != nil{
+	if err != nil {
 		fmt.Println("Error:", err)
+	} else {
+		fmt.Println("Result:", result)
 	}
-
-	fmt.Println("Result:", result)
 }
