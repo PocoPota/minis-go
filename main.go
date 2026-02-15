@@ -239,4 +239,25 @@ func main() {
 	} else {
 		fmt.Println("Result:", result3)
 	}
+
+	// 変数と代入の例: x = 5; x + 3 を表す式を構築
+	expr4 := Seq{
+		exprs: []Expr{
+			Assign{
+				Name: "x",
+				Value: Number{Value: 5},
+			},
+			BinExpr{
+				Op:   Add,
+				Left: Ident{Name: "x"},
+				Right: Number{Value: 3},
+			},
+		},
+	}
+	result4, err := Eval(expr4, env)
+	if err != nil {
+		fmt.Println("Error:", err)
+	} else {
+		fmt.Println("Result:", result4)
+	}
 }
