@@ -8,6 +8,7 @@ type Expr interface {
 
 // Opの定義
 type Op int
+
 const (
 	Add Op = iota
 	Sub
@@ -25,7 +26,7 @@ type Number struct {
 }
 
 func (BinExpr) isExpr() {}
-func (Number) isExpr() {}
+func (Number) isExpr()  {}
 
 func Eval(expr Expr) (int, error) {
 	switch e := expr.(type) {
@@ -63,11 +64,11 @@ func Eval(expr Expr) (int, error) {
 func main() {
 	// (1 + 2 * 3) を表す式を構築
 	expr := BinExpr{
-		Op: Add,
+		Op:   Add,
 		Left: Number{Value: 1},
 		Right: BinExpr{
-			Op: Mul,
-			Left: Number{Value: 2},
+			Op:    Mul,
+			Left:  Number{Value: 2},
 			Right: Number{Value: 3},
 		},
 	}
