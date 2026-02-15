@@ -61,6 +61,12 @@ type If struct {
 }
 func (If) isExpr() {}
 
+// 繰り返し
+type While struct {
+	Cond, Body Expr
+}
+func (While) isExpr() {}
+
 func Eval(expr Expr, env Env) (int, error) {
 	switch e := expr.(type) {
 	// 数値はそのまま返す
@@ -113,6 +119,21 @@ func Eval(expr Expr, env Env) (int, error) {
 		} else {
 			return Eval(e.Else, env)
 		}
+	case While:
+		for {
+			condVal, err := Eval(e.Cond, env)
+			if err != nil {
+				return 0, err
+			}
+			if condVal == 0 {
+				break
+			}
+			_, err = Eval(e.Body, env)
+			if err != nil {
+				return 0, err
+			}
+		}
+		return 0, nil // whileの値は常に0とする
 	default:
 		return 0, fmt.Errorf("unknown expression type: %T", expr)
 	}
@@ -292,5 +313,37 @@ func main() {
 		fmt.Println("Error:", err)
 	} else {
 		fmt.Println("Result:", result5)
+	}
+
+	// 繰り返しの例: while (x < 10) do x = x + 1 を表す式を構築
+	expr6 := Seq{
+		exprs: []Expr{
+			Assign{
+				Name: "x",
+				Value: Number{Value: 0},
+			},
+			While{
+				Cond: BinExpr{
+					Op:   Lt,
+					Left: Ident{Name: "x"},
+					Right: Number{Value: 10},
+				},
+				Body: Assign{
+					Name: "x",
+					Value: BinExpr{
+						Op:   Add,
+						Left: Ident{Name: "x"},
+						Right: Number{Value: 1},
+					},
+				},
+			},
+			Ident{Name: "x"}, // 最終的な値を返すために変数xを評価
+		},
+	}
+	result6, err := Eval(expr6, env)
+	if err != nil {
+		fmt.Println("Error:", err)
+	} else {
+		fmt.Println("Result:", result6)
 	}
 }
