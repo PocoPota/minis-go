@@ -41,8 +41,21 @@ type Seq struct {
 }
 func (Seq) isExpr() {}
 
+// 変数・代入関係
+type Env map[string]int
 
-func Eval(expr Expr) (int, error) {
+type Ident struct {
+	Name string
+}
+func (Ident) isExpr() {}
+
+type Assign struct {
+	Name string
+	Value Expr
+}
+func (Assign) isExpr() {}
+
+func Eval(expr Expr, env Env) (int, error) {
 	switch e := expr.(type) {
 	// 数値はそのまま返す
 	case Number:
@@ -51,10 +64,10 @@ func Eval(expr Expr) (int, error) {
 		switch e.Op {
 		// 数式はEvalMathExprで評価する
 		case Add, Sub, Mul, Div:
-			return EvalMathExpr(e)
+			return EvalMathExpr(e, env)
 		// 比較式はEvalCompExprで評価する
 		case Lt, Gt, LtEq, GtEq, Eq, Neq:
-			return EvalCompExpr(e)
+			return EvalCompExpr(e, env)
 		default:
 			return 0, fmt.Errorf("unknown expression type: %T", e.Op)
 		}
@@ -64,25 +77,38 @@ func Eval(expr Expr) (int, error) {
 		}
 		var result int
 		for _, ex := range e.exprs{
-			v, err := Eval(ex)
+			v, err := Eval(ex, env)
 			if err != nil {
 				return 0, err
 			}
 			result = v // 最後の式の値を返す
 		}
 		return result, nil
+	case Ident:
+		val, err := env[e.Name]
+		if !err {
+			return 0, fmt.Errorf("undefined ident: %s", e.Name)
+		}
+		return val, nil
+	case Assign:
+		val, err := Eval(e.Value, env)
+		if err != nil {
+			return 0, err
+		}
+		env[e.Name] = val
+		return val, nil
 	default:
 		return 0, fmt.Errorf("unknown expression type: %T", expr)
 	}
 }
 
 // 数式
-func EvalMathExpr(expr BinExpr) (int, error) {
-	l, err := Eval(expr.Left)
+func EvalMathExpr(expr BinExpr, env Env) (int, error) {
+	l, err := Eval(expr.Left, env)
 	if err != nil {
 		return 0, err
 	}
-	r, err := Eval(expr.Right)
+	r, err := Eval(expr.Right, env)
 	if err != nil {
 		return 0, err
 	}
@@ -105,12 +131,12 @@ func EvalMathExpr(expr BinExpr) (int, error) {
 }
 
 // 比較式 (0: false, 1: true)
-func EvalCompExpr(expr BinExpr) (int, error) {
-	l, err := Eval(expr.Left)
+func EvalCompExpr(expr BinExpr, env Env) (int, error) {
+	l, err := Eval(expr.Left, env)
 	if err != nil {
 		return 0, err
 	}
-	r, err := Eval(expr.Right)
+	r, err := Eval(expr.Right, env)
 	if err != nil {
 		return 0, err
 	}
@@ -152,6 +178,8 @@ func EvalCompExpr(expr BinExpr) (int, error) {
 }
 
 func main() {
+	env := make(Env)
+
 	// (1 + 2 * 3) を表す式を構築
 	expr := BinExpr{
 		Op:   Add,
@@ -162,7 +190,7 @@ func main() {
 			Right: Number{Value: 3},
 		},
 	}
-	result, err := Eval(expr)
+	result, err := Eval(expr, env)
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {
@@ -183,7 +211,7 @@ func main() {
 		},
 		Right: Number{Value: 10},
 	}
-	result2, err := Eval(expr2)
+	result2, err := Eval(expr2, env)
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {
@@ -205,7 +233,7 @@ func main() {
 			},
 		},
 	}
-	result3, err := Eval(expr3)
+	result3, err := Eval(expr3, env)
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {
