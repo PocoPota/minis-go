@@ -33,31 +33,36 @@ func Eval(expr Expr) (int, error) {
 	case Number:
 		return e.Value, nil
 	case BinExpr:
-		l, err := Eval(e.Left)
-		if err != nil {
-			return 0, err
-		}
-		r, err := Eval(e.Right)
-		if err != nil {
-			return 0, err
-		}
-		switch e.Op {
-		case Add:
-			return l + r, nil
-		case Sub:
-			return l - r, nil
-		case Mul:
-			return l * r, nil
-		case Div:
-			if r == 0 {
-				return 0, fmt.Errorf("division by zero")
-			}
-			return l / r, nil
-		default:
-			return 0, fmt.Errorf("unknown operator: %v", e.Op)
-		}
+		return EvalMathExpr(e)
 	default:
-		return 0, fmt.Errorf("unknown expression type: %T", e)
+		return 0, fmt.Errorf("unknown expression type: %T", expr)
+	}
+}
+
+func EvalMathExpr(expr BinExpr) (int, error) {
+	l, err := Eval(expr.Left)
+	if err != nil {
+		return 0, err
+	}
+	r, err := Eval(expr.Right)
+	if err != nil {
+		return 0, err
+	}
+
+	switch expr.Op {
+	case Add:
+		return l + r, nil
+	case Sub:
+		return l - r, nil
+	case Mul:
+		return l * r, nil
+	case Div:
+		if r == 0 {
+			return 0, fmt.Errorf("division by zero")
+		}
+		return l / r, nil
+	default:
+		return 0, fmt.Errorf("unknown operator: %v", expr.Op)
 	}
 }
 
