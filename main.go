@@ -55,6 +55,12 @@ type Assign struct {
 }
 func (Assign) isExpr() {}
 
+// 比較式
+type If struct {
+	Cond, Then, Else Expr
+}
+func (If) isExpr() {}
+
 func Eval(expr Expr, env Env) (int, error) {
 	switch e := expr.(type) {
 	// 数値はそのまま返す
@@ -97,6 +103,16 @@ func Eval(expr Expr, env Env) (int, error) {
 		}
 		env[e.Name] = val
 		return val, nil
+	case If:
+		condVal, err := Eval(e.Cond, env)
+		if err != nil {
+			return 0, err
+		}
+		if condVal != 0 {
+			return Eval(e.Then, env)
+		} else {
+			return Eval(e.Else, env)
+		}
 	default:
 		return 0, fmt.Errorf("unknown expression type: %T", expr)
 	}
@@ -259,5 +275,22 @@ func main() {
 		fmt.Println("Error:", err)
 	} else {
 		fmt.Println("Result:", result4)
+	}
+
+	// 比較式の例: if (x > 3) then 1 else 0 を表す式を構築
+	expr5 := If{
+		Cond: BinExpr{
+			Op:   Gt,
+			Left: Ident{Name: "x"},
+			Right: Number{Value: 3},
+		},
+		Then: Number{Value: 1},
+		Else: Number{Value: 0},
+	}
+	result5, err := Eval(expr5, env)
+	if err != nil {
+		fmt.Println("Error:", err)
+	} else {
+		fmt.Println("Result:", result5)
 	}
 }
