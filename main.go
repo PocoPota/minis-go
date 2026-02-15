@@ -10,10 +10,16 @@ type Expr interface {
 type Op int
 
 const (
-	Add Op = iota
-	Sub
-	Mul
-	Div
+	Add  Op = iota // +
+	Sub            // -
+	Mul            // *
+	Div            // /
+	Lt             // <
+	Gt             // >
+	LtEq           // <=
+	GtEq           // >=
+	Eq             // ==
+	Neq            // !=
 )
 
 type BinExpr struct {
@@ -30,15 +36,26 @@ func (Number) isExpr()  {}
 
 func Eval(expr Expr) (int, error) {
 	switch e := expr.(type) {
+	// 数値はそのまま返す
 	case Number:
 		return e.Value, nil
 	case BinExpr:
-		return EvalMathExpr(e)
+		switch e.Op {
+		// 数式はEvalMathExprで評価する
+		case Add, Sub, Mul, Div:
+			return EvalMathExpr(e)
+		// 比較式はEvalCompExprで評価する
+		case Lt, Gt, LtEq, GtEq, Eq, Neq:
+			return EvalCompExpr(e)
+		default:
+			return 0, fmt.Errorf("unknown expression type: %T", e.Op)
+		}
 	default:
 		return 0, fmt.Errorf("unknown expression type: %T", expr)
 	}
 }
 
+// 数式
 func EvalMathExpr(expr BinExpr) (int, error) {
 	l, err := Eval(expr.Left)
 	if err != nil {
@@ -66,6 +83,53 @@ func EvalMathExpr(expr BinExpr) (int, error) {
 	}
 }
 
+// 比較式 (0: false, 1: true)
+func EvalCompExpr(expr BinExpr) (int, error) {
+	l, err := Eval(expr.Left)
+	if err != nil {
+		return 0, err
+	}
+	r, err := Eval(expr.Right)
+	if err != nil {
+		return 0, err
+	}
+
+	switch expr.Op {
+	case Lt:
+		if l < r {
+			return 1, nil
+		}
+		return 0, nil
+	case Gt:
+		if l > r {
+			return 1, nil
+		}
+		return 0, nil
+	case LtEq:
+		if l <= r {
+			return 1, nil
+		}
+		return 0, nil
+	case GtEq:
+		if l >= r {
+			return 1, nil
+		}
+		return 0, nil
+	case Eq:
+		if l == r {
+			return 1, nil
+		}
+		return 0, nil
+	case Neq:
+		if l != r {
+			return 1, nil
+		}
+		return 0, nil
+	default:
+		return 0, fmt.Errorf("unknown operator: %v", expr.Op)
+	}
+}
+
 func main() {
 	// (1 + 2 * 3) を表す式を構築
 	expr := BinExpr{
@@ -83,4 +147,25 @@ func main() {
 	} else {
 		fmt.Println("Result:", result)
 	}
+
+	// (1 + 2) * 3 > 10 を表す式を構築
+	expr2 := BinExpr{
+		Op:   Gt,
+		Left: BinExpr{
+			Op:   Mul,
+			Left: BinExpr{
+				Op:   Add,
+				Left: Number{Value: 1},
+				Right: Number{Value: 2},
+			},
+			Right: Number{Value: 3},
+		},
+		Right: Number{Value: 10},
+	}
+	result2, err := Eval(expr2)
+	if err != nil {
+		fmt.Println("Error:", err)
+	} else {
+		fmt.Println("Result:", result2)
+	}	
 }
