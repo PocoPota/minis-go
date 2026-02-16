@@ -1,5 +1,5 @@
 # Minis Go
-Minis Go は [MiniS](https://github.com/kmizu/minis/tree/main) を参考に Go で実装された問プログラミング言語です。
+Minis Go は [MiniS](https://github.com/kmizu/minis/tree/main) を参考に Go で実装されたトイプログラミング言語です。
 
 ## 対応する構文
 
