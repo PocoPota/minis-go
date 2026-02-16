@@ -19,11 +19,11 @@ func Eval(expr Expr, env Env, fenv FuncEnv) (int, error) {
 			return 0, fmt.Errorf("unknown expression type: %T", e.Op)
 		}
 	case Seq:
-		if len(e.exprs) == 0 {
+		if len(e.Exprs) == 0 {
 			return 0, nil // 空のシーケンスは0を返す
 		}
 		var result int
-		for _, ex := range e.exprs {
+		for _, ex := range e.Exprs {
 			v, err := Eval(ex, env, fenv)
 			if err != nil {
 				return 0, err

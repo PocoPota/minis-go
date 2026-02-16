@@ -46,7 +46,7 @@ func main() {
 
 	// シーケンスの例: (1 + 2; 3 * 4) を表す式を構築
 	expr3 := Seq{
-		exprs: []Expr{
+		Exprs: []Expr{
 			BinExpr{
 				Op:    Add,
 				Left:  Number{Value: 1},
@@ -68,7 +68,7 @@ func main() {
 
 	// 変数と代入の例: x = 5; x + 3 を表す式を構築
 	expr4 := Seq{
-		exprs: []Expr{
+		Exprs: []Expr{
 			Assign{
 				Name:  "x",
 				Value: Number{Value: 5},
@@ -106,7 +106,7 @@ func main() {
 
 	// 繰り返しの例: while (x < 10) do x = x + 1 を表す式を構築
 	expr6 := Seq{
-		exprs: []Expr{
+		Exprs: []Expr{
 			Assign{
 				Name:  "x",
 				Value: Number{Value: 0},

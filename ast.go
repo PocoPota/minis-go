@@ -41,7 +41,7 @@ func (Number) isExpr() {}
 
 // シーケンス
 type Seq struct {
-	exprs []Expr
+	Exprs []Expr
 }
 
 func (Seq) isExpr() {}
@@ -60,7 +60,7 @@ type Assign struct {
 
 func (Assign) isExpr() {}
 
-// 比較式
+// 条件分岐
 type If struct {
 	Cond, Then, Else Expr
 }
