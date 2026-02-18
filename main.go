@@ -1,8 +1,31 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 func main() {
+	if len(os.Args) >= 2 {
+		data, err := os.ReadFile(os.Args[1])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error:", err)
+			os.Exit(1)
+		}
+		prog, err := ParseProgram(data)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error:", err)
+			os.Exit(1)
+		}
+		result, err := EvalProgram(prog)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error:", err)
+			os.Exit(1)
+		}
+		fmt.Println(result)
+		return
+	}
+
 	env := make(Env)
 	fenv := make(FuncEnv)
 

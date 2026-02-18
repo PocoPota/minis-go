@@ -1,0 +1,40 @@
+{
+  "funcs": [
+    {
+      "name": "fact",
+      "params": ["n"],
+      "body": {
+        "type": "if",
+        "cond": {
+          "type": "bin",
+          "op": "LtEq",
+          "left": { "type": "ident", "name": "n" },
+          "right": { "type": "num", "value": 1 }
+        },
+        "then": { "type": "num", "value": 1 },
+        "else": {
+          "type": "bin",
+          "op": "Mul",
+          "left": { "type": "ident", "name": "n" },
+          "right": {
+            "type": "call",
+            "name": "fact",
+            "args": [
+              {
+                "type": "bin",
+                "op": "Sub",
+                "left": { "type": "ident", "name": "n" },
+                "right": { "type": "num", "value": 1 }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "body": {
+    "type": "call",
+    "name": "fact",
+    "args": [{ "type": "num", "value": 5 }]
+  }
+}
