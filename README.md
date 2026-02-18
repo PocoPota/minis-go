@@ -122,3 +122,77 @@ Program{
 	Body: Call{Name: "add", Args: []Expr{Number{Value: 3}, Number{Value: 4}}},
 }
 ```
+
+## JSON でプログラムを書く
+
+JSON ファイルにプログラムを記述し、コマンドライン引数で指定して実行できます。
+
+```sh
+go run . fact.json
+```
+
+### 式の表現
+
+各式は `type` フィールドで種類を指定します。
+
+| type | 説明 | フィールド |
+|---|---|---|
+| `num` | 数値 | `value` |
+| `ident` | 変数参照 | `name` |
+| `bin` | 二項演算 | `op`, `left`, `right` |
+| `if` | 条件分岐 | `cond`, `then`, `else` |
+| `while` | 繰り返し | `cond`, `body` |
+| `assign` | 代入 | `name`, `value` |
+| `seq` | 連接 | `exprs` |
+| `call` | 関数呼び出し | `name`, `args` |
+
+`bin` の `op` には `Add`, `Sub`, `Mul`, `Div`, `Lt`, `Gt`, `LtEq`, `GtEq`, `Eq`, `Neq` を指定できます。
+
+### プログラムの構造
+
+トップレベルは `funcs`（関数定義の配列）と `body`（メインの式）で構成されます。
+
+### 例: 階乗（fact(5) = 120）
+
+```json
+{
+  "funcs": [
+    {
+      "name": "fact",
+      "params": ["n"],
+      "body": {
+        "type": "if",
+        "cond": {
+          "type": "bin",
+          "op": "LtEq",
+          "left": { "type": "ident", "name": "n" },
+          "right": { "type": "num", "value": 1 }
+        },
+        "then": { "type": "num", "value": 1 },
+        "else": {
+          "type": "bin",
+          "op": "Mul",
+          "left": { "type": "ident", "name": "n" },
+          "right": {
+            "type": "call",
+            "name": "fact",
+            "args": [
+              {
+                "type": "bin",
+                "op": "Sub",
+                "left": { "type": "ident", "name": "n" },
+                "right": { "type": "num", "value": 1 }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "body": {
+    "type": "call",
+    "name": "fact",
+    "args": [{ "type": "num", "value": 5 }]
+  }
+}
+```
